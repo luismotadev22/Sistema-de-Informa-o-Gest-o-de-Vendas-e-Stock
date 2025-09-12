@@ -1,9 +1,24 @@
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Optional
+
+@dataclass
 class Produto:
-    def __init__(self, id_produto=None, nome="", preco_venda=0, custo_aquisicao=0, stock_atual=0, stock_minimo=0, data_registo=None):
-        self.id_produto = id_produto
-        self.nome = nome
-        self.preco_venda = preco_venda
-        self.custo_aquisicao = custo_aquisicao
-        self.stock_atual = stock_atual
-        self.stock_minimo = stock_minimo
-        self.data_registo = data_registo
+    nome: str
+    preco_venda: float
+    custo_aquisicao: float
+    stock_atual: int
+    stock_minimo: int
+    data_registo: Optional[datetime] = None
+    id_produto: Optional[int] = None       # opcional, vem depois dos obrigatórios
+    criado_em: Optional[datetime] = None   # opcional, vem depois dos obrigatórios
+
+    def em_alerta(self) -> bool:
+        """Retorna True se o produto estiver com stock abaixo ou igual ao mínimo."""
+        return self.stock_atual <= self.stock_minimo
+
+    def margem_lucro(self) -> float:
+        """Calcula a margem de lucro percentual do produto."""
+        if self.custo_aquisicao == 0:
+            return 0.0
+        return ((self.preco_venda - self.custo_aquisicao) / self.custo_aquisicao) * 100

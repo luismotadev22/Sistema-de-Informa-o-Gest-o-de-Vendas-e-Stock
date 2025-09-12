@@ -1,36 +1,52 @@
-import ttkbootstrap as tb
-from ttkbootstrap.constants import *
+import mysql.connector
+from mysql.connector import Error
 
-class Dashboard(tb.Window):
-    def __init__(self):
-        super().__init__(themename="cosmo")
-        self.title("📊 Gestão de Vendas e Stock")
-        self.geometry("1000x600")
+def get_connection():
+    """
+    Estabelece e retorna uma conexão com a base de dados MySQL
+    """
+    try:
+        conn = mysql.connector.connect(
+            host="localhost",
+            user="root", 
+            password="grandeprogramador",
+            database="gestao_vendas_stock"
+        )
+        if conn.is_connected():
+            print("✅ Conectado à base de dados MySQL")
+            return conn
+    except Error as e:
+        print(f"❌ Erro ao conectar ao MySQL: {e}")
+        return None
 
-        # Menu lateral
-        menu_frame = tb.Frame(self, bootstyle="secondary")
-        menu_frame.pack(side=LEFT, fill=Y)
-        tb.Button(menu_frame, text="📦 Produtos", bootstyle="info-outline", command=self.abrir_produtos).pack(fill=X, pady=5, padx=5)
-        tb.Button(menu_frame, text="🛒 Vendas", bootstyle="success-outline", command=self.abrir_vendas).pack(fill=X, pady=5, padx=5)
-        tb.Button(menu_frame, text="📈 Relatórios", bootstyle="warning-outline", command=self.abrir_relatorios).pack(fill=X, pady=5, padx=5)
-
-        # Área principal
-        self.main_frame = tb.Frame(self, bootstyle="light")
-        self.main_frame.pack(side=RIGHT, fill=BOTH, expand=True)
-        tb.Label(self.main_frame, text="Bem-vindo ao Sistema!", font=("Segoe UI", 18, "bold"), bootstyle="primary").pack(pady=20)
-
-    def abrir_produtos(self):
-        from ui.produtos_view import ProdutosView
-        ProdutosView(self.main_frame)
-
-    def abrir_vendas(self):
-        from ui.vendas_view import VendasView
-        VendasView(self.main_frame)
-
-    def abrir_relatorios(self):
-        from ui.relatorios_view import RelatoriosView
-        RelatoriosView(self.main_frame)
-
-if __name__ == "__main__":
-    app = Dashboard()
-    app.mainloop()
+def execute_query(query, params=None, fetch=False):
+    """
+    Executa uma query na base de dados
+    """
+    conn = None
+    cursor = None
+    try:
+        conn = get_connection()
+        if conn is None:
+            return None
+            
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(query, params or ())
+        
+        if fetch:
+            result = cursor.fetchall()
+            return result
+        else:
+            conn.commit()
+            return cursor.rowcount
+            
+    except Error as e:
+        print(f"❌ Erro ao executar query: {e}")
+        if conn:
+            conn.rollback()
+        return None
+    finally:
+        if cursor:
+            cursor.close()
+        if conn and conn.is_connected():
+            conn.close()

@@ -1,12 +1,17 @@
-class Venda:
-    def __init__(self, id_venda, produto_id, quantidade, preco_unitario, total=None, data_hora=None, status="confirmada"):
-        self.id_venda = id_venda
-        self.produto_id = produto_id
-        self.quantidade = quantidade
-        self.preco_unitario = preco_unitario
-        self.total = total if total is not None else quantidade * preco_unitario
-        self.data_hora = data_hora
-        self.status = status
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Optional
 
-    def __repr__(self):
-        return f"<Venda {self.id_venda} - Produto {self.produto_id} ({self.quantidade} un.)>"
+@dataclass
+class Venda:
+    produto_id: int
+    quantidade: int
+    preco_unitario: float
+    total: float
+    id_venda: Optional[int] = None
+    data_venda: datetime = field(default_factory=datetime.now)
+
+    def calcular_total(self) -> float:
+        """Calcula o valor total da venda e atualiza o campo 'total'."""
+        self.total = self.quantidade * self.preco_unitario
+        return self.total
