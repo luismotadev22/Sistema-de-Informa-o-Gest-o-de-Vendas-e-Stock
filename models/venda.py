@@ -12,6 +12,6 @@ class Venda:
     data_venda: datetime = field(default_factory=datetime.now)
 
     def calcular_total(self) -> float:
-        """Calcula o valor total da venda e atualiza o campo 'total'."""
+        """Calcula o total da venda."""
         self.total = self.quantidade * self.preco_unitario
         return self.total

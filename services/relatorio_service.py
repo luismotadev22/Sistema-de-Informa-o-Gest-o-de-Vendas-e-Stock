@@ -1,24 +1,24 @@
-from dao.venda_dao import VendaDAO
-from collections import defaultdict
-from typing import List
+from typing import List, Optional
+from dao.relatorio_dao import RelatorioDAO
+from models.relatorio import VendaDiaria, ProdutoMaisVendido
+
 
 class RelatorioService:
     def __init__(self):
-        self.dao = VendaDAO()
+        self.dao = RelatorioDAO()
 
-    def vendas_por_dia(self) -> dict:
-        """Retorna dicionário: {data: total_vendas}"""
-        relatorio = defaultdict(float)
-        for venda in self.dao.listar():
-            dia = venda.data_venda.date()  # já é datetime
-            relatorio[dia] += venda.total
-        return dict(relatorio)
+    def vendas_por_dia(
+        self, start_date: Optional[str] = None, end_date: Optional[str] = None
+    ) -> List[VendaDiaria]:
+        """
+        Retorna lista de objetos VendaDiaria
+        """
+        return self.dao.vendas_diarias(start_date, end_date)
 
-    def produtos_mais_vendidos(self) -> List[dict]:
-        """Retorna lista de produtos mais vendidos"""
-        resumo = defaultdict(lambda: {"quantidade": 0, "valor_total": 0})
-        for venda in self.dao.listar():
-            resumo[venda.produto_id]["quantidade"] += venda.quantidade
-            resumo[venda.produto_id]["valor_total"] += venda.total
-        lista = [{"produto_id": k, **v} for k, v in resumo.items()]
-        return sorted(lista, key=lambda x: x["quantidade"], reverse=True)
+    def produtos_mais_vendidos(
+        self, limite: int = 10, start_date: Optional[str] = None, end_date: Optional[str] = None
+    ) -> List[ProdutoMaisVendido]:
+        """
+        Retorna lista de objetos ProdutoMaisVendido
+        """
+        return self.dao.produtos_mais_vendidos(limite, start_date, end_date)

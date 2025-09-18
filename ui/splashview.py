@@ -1,15 +1,16 @@
 import ttkbootstrap as tb
 import tkinter as tk
-from ui.dashboard import Dashboard
+from dashboard import Dashboard  # Dashboard atualizado com método iniciar()
 
 class SplashScreen(tb.Toplevel):
     def __init__(self, parent, delay=3000):
         super().__init__(parent)
         self.parent = parent
         self.delay = delay
-        self.overrideredirect(True)  # remove barra de título
-        self.configure(bg="#2c3e50")
         self.geometry("500x300")
+        self.title("Bem-vindo")
+        self.overrideredirect(True)
+        self.configure(bg="#2c3e50")
 
         # Centralizar
         self.update_idletasks()
@@ -35,19 +36,13 @@ class SplashScreen(tb.Toplevel):
         self.progress.stop()
         self.destroy()
         self.parent.deiconify()  # mostra a janela principal
-        Dashboard(self.parent)    # inicializa o dashboard
+        # Instancia o Dashboard após splash
+        self.parent.dashboard = Dashboard(self.parent)
+        self.parent.dashboard.iniciar(aba_inicial="Produtos")  # escolhe aba inicial
 
-
-def main():
-    # Janela principal oculta
-    root = tb.Window(themename="darkly")
-    root.withdraw()
-    root.title("Sistema de Gestão de Vendas e Stock")
-    root.geometry("2024x1000")
-
-    # Splash screen antes do dashboard
+# Rodar aplicação
+if __name__ == "__main__":
+    root = tb.Window(themename="flatly")  # janela principal moderna
+    root.withdraw()  # esconde janela principal inicialmente
     splash = SplashScreen(root, delay=3000)
     splash.mainloop()
-
-if __name__ == "__main__":
-    main()

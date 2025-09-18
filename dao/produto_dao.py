@@ -2,10 +2,10 @@ from typing import Optional, List
 from db.db_connection import get_connection
 from models.produto import Produto
 from mysql.connector import Error
+from datetime import datetime
 
 class ProdutoDAO:
     def inserir(self, produto: Produto) -> Optional[int]:
-        """Insere um novo produto na tabela produtos."""
         conn = get_connection()
         if not conn:
             return None
@@ -28,7 +28,6 @@ class ProdutoDAO:
             conn.close()
 
     def listar_todos(self) -> List[Produto]:
-        """Retorna todos os produtos cadastrados."""
         produtos = []
         conn = get_connection()
         if not conn:
@@ -38,6 +37,12 @@ class ProdutoDAO:
             cursor.execute("SELECT * FROM produtos ORDER BY id_produto ASC;")
             rows = cursor.fetchall()
             for row in rows:
+                data = row.get("criado_em")
+                if isinstance(data, str):
+                    try:
+                        data = datetime.strptime(data, "%Y-%m-%d %H:%M:%S")
+                    except ValueError:
+                        data = None
                 produtos.append(Produto(
                     id_produto=row["id_produto"],
                     nome=row["nome"],
@@ -45,18 +50,14 @@ class ProdutoDAO:
                     custo_aquisicao=float(row["custo_aquisicao"]),
                     stock_atual=row["stock_atual"],
                     stock_minimo=row["stock_minimo"],
-                    data_registo=row.get("data_registo")
+                    data_registo=data
                 ))
-            return produtos
-        except Error as e:
-            print(f"❌ Erro ao listar produtos: {e}")
             return produtos
         finally:
             cursor.close()
             conn.close()
 
     def obter_por_id(self, id_produto: int) -> Optional[Produto]:
-        """Busca um produto pelo seu ID."""
         conn = get_connection()
         if not conn:
             return None
@@ -65,6 +66,12 @@ class ProdutoDAO:
             cursor.execute("SELECT * FROM produtos WHERE id_produto=%s", (id_produto,))
             row = cursor.fetchone()
             if row:
+                data = row.get("criado_em")
+                if isinstance(data, str):
+                    try:
+                        data = datetime.strptime(data, "%Y-%m-%d %H:%M:%S")
+                    except ValueError:
+                        data = None
                 return Produto(
                     id_produto=row["id_produto"],
                     nome=row["nome"],
@@ -72,18 +79,14 @@ class ProdutoDAO:
                     custo_aquisicao=float(row["custo_aquisicao"]),
                     stock_atual=row["stock_atual"],
                     stock_minimo=row["stock_minimo"],
-                    data_registo=row.get("data_registo")
+                    data_registo=data
                 )
-            return None
-        except Error as e:
-            print(f"❌ Erro ao buscar produto: {e}")
             return None
         finally:
             cursor.close()
             conn.close()
 
     def atualizar(self, produto: Produto) -> bool:
-        """Atualiza os dados de um produto existente no BD."""
         conn = get_connection()
         if not conn:
             return False
@@ -94,7 +97,6 @@ class ProdutoDAO:
             SET nome=%s, preco_venda=%s, custo_aquisicao=%s, stock_atual=%s, stock_minimo=%s
             WHERE id_produto=%s
             """
-            print(f"🔄 Executando UPDATE -> ID: {produto.id_produto}, Stock novo: {produto.stock_atual}")
             cursor.execute(sql, (
                 produto.nome,
                 produto.preco_venda,
@@ -104,12 +106,7 @@ class ProdutoDAO:
                 produto.id_produto
             ))
             conn.commit()
-            print(f"✅ UPDATE concluído. Linhas afetadas: {cursor.rowcount}")
             return cursor.rowcount > 0
-        except Exception as e:
-            print(f"❌ Erro ao atualizar produto: {e}")
-            conn.rollback()
-            return False
         finally:
             cursor.close()
             conn.close()

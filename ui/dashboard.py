@@ -1,54 +1,52 @@
-import tkinter as tk
+import ttkbootstrap as tb
+from tkinter import ttk
 from ui.produtos_view import ProdutosView
 from ui.vendas_view import VendasView
 from ui.relatorios_view import RelatoriosView
 
+
 class Dashboard:
     def __init__(self, root):
         self.root = root
-        self.root.title("Gestão de Vendas e Stock")
-        self.root.geometry("1200x800")
+        self.root.configure(bg="#ecf0f1")
 
-        # Menu topo
-        menubar = tk.Menu(self.root)
-        produtos_menu = tk.Menu(menubar, tearoff=0)
-        produtos_menu.add_command(label="Listar Produtos", command=self.show_produtos)
-        menubar.add_cascade(label="Produtos", menu=produtos_menu)
+        # Estilo ttk moderno
+        style = ttk.Style()
+        style.theme_use("clam")
+        style.configure("TNotebook", background="#ecf0f1", borderwidth=0)
+        style.configure("TNotebook.Tab",
+                        font=("Segoe UI", 12, "bold"),
+                        padding=[15, 8],
+                        background="#bdc3c7")
+        style.map("TNotebook.Tab",
+                  background=[("selected", "#3498db")],
+                  foreground=[("selected", "white")])
 
-        vendas_menu = tk.Menu(menubar, tearoff=0)
-        vendas_menu.add_command(label="Listar Vendas", command=self.show_vendas)
-        menubar.add_cascade(label="Vendas", menu=vendas_menu)
+        # Notebook (abas principais)
+        self.notebook = ttk.Notebook(self.root)
+        self.notebook.pack(fill="both", expand=True, padx=10, pady=10)
 
-        relatorios_menu = tk.Menu(menubar, tearoff=0)
-        relatorios_menu.add_command(label="Ver Relatórios", command=self.show_relatorios)
-        menubar.add_cascade(label="Relatórios", menu=relatorios_menu)
+        # Criar frames para cada view
+        self.produtos_frame = ttk.Frame(self.notebook, padding=10)
+        self.vendas_frame = ttk.Frame(self.notebook, padding=10)
+        self.relatorios_frame = ttk.Frame(self.notebook, padding=10)
 
-        self.root.config(menu=menubar)
+        self.notebook.add(self.produtos_frame, text="📦 Produtos")
+        self.notebook.add(self.vendas_frame, text="🛒 Vendas")
+        self.notebook.add(self.relatorios_frame, text="📑 Relatórios")
 
-        # Área principal
-        self.container = tk.Frame(self.root)
-        self.container.pack(fill="both", expand=True)
+        # Adicionar views dentro dos frames
+        self.produtos_view = ProdutosView(self.produtos_frame)
+        self.vendas_view = VendasView(self.vendas_frame)
+        self.relatorios_view = RelatoriosView(self.relatorios_frame)
 
-        # Views
-        self.produtos_view = ProdutosView(self.container)
-        self.vendas_view = VendasView(self.container)
-        self.relatorios_view = RelatoriosView(self.container)
-
-        self.show_produtos()
-
-    def hide_all(self):
-        self.produtos_view.pack_forget()
-        self.vendas_view.pack_forget()
-        self.relatorios_view.pack_forget()
-
-    def show_produtos(self):
-        self.hide_all()
         self.produtos_view.pack(fill="both", expand=True)
-
-    def show_vendas(self):
-        self.hide_all()
         self.vendas_view.pack(fill="both", expand=True)
-
-    def show_relatorios(self):
-        self.hide_all()
         self.relatorios_view.pack(fill="both", expand=True)
+
+    def iniciar(self, aba_inicial="Produtos"):
+        """Seleciona a aba inicial ao abrir o Dashboard"""
+        tabs = {"Produtos": 0, "Vendas": 1, "Relatórios": 2}
+        index = tabs.get(aba_inicial, 0)
+        self.notebook.select(index)
+        self.root.deiconify()
