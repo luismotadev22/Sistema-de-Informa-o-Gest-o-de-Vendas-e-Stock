@@ -3,6 +3,7 @@ from tkinter import ttk
 from ui.produtos_view import ProdutosView
 from ui.vendas_view import VendasView
 from ui.relatorios_view import RelatoriosView
+from ui.alerta_view import AlertaView  # ← IMPORTAR A VIEW DE ALERTAS
 
 
 class Dashboard:
@@ -30,23 +31,27 @@ class Dashboard:
         self.produtos_frame = ttk.Frame(self.notebook, padding=10)
         self.vendas_frame = ttk.Frame(self.notebook, padding=10)
         self.relatorios_frame = ttk.Frame(self.notebook, padding=10)
+        self.alertas_frame = ttk.Frame(self.notebook, padding=10)  # ← NOVO FRAME PARA ALERTAS
 
         self.notebook.add(self.produtos_frame, text="📦 Produtos")
         self.notebook.add(self.vendas_frame, text="🛒 Vendas")
         self.notebook.add(self.relatorios_frame, text="📑 Relatórios")
+        self.notebook.add(self.alertas_frame, text="🚨 Alertas")  # ← NOVA ABA
 
         # Adicionar views dentro dos frames
         self.produtos_view = ProdutosView(self.produtos_frame)
         self.vendas_view = VendasView(self.vendas_frame)
         self.relatorios_view = RelatoriosView(self.relatorios_frame)
+        self.alertas_view = AlertaView(self.alertas_frame)  # ← NOVA VIEW
 
         self.produtos_view.pack(fill="both", expand=True)
         self.vendas_view.pack(fill="both", expand=True)
         self.relatorios_view.pack(fill="both", expand=True)
+        self.alertas_view.pack(fill="both", expand=True)  # ← EMPACOTAR A VIEW
 
     def iniciar(self, aba_inicial="Produtos"):
         """Seleciona a aba inicial ao abrir o Dashboard"""
-        tabs = {"Produtos": 0, "Vendas": 1, "Relatórios": 2}
+        tabs = {"Produtos": 0, "Vendas": 1, "Relatórios": 2, "Alertas": 3}  # ← ATUALIZAR
         index = tabs.get(aba_inicial, 0)
         self.notebook.select(index)
         self.root.deiconify()

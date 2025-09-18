@@ -1,82 +1,57 @@
-from db.db_connection import get_connection
-from models.alerta import Alerta
-from mysql.connector import Error
+# services/alerta_service.py
 from typing import List, Optional
+from models.alerta import Alerta
+from dao.alerta_dao import AlertaDAO
 
-class AlertaDAO:
-    def listar_todos(self) -> List[Alerta]:
-        """Retorna todos os alertas, ordenados por data (mais recente primeiro)."""
-        alertas = []
-        conn = get_connection()
-        if not conn:
-            return alertas
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute("SELECT * FROM alertas ORDER BY data_alerta DESC;")
-            rows = cursor.fetchall()
-            for row in rows:
-                alertas.append(Alerta(
-                    id_alerta=row["id_alerta"],
-                    produto_id=row["produto_id"],
-                    quantidade_atual=row["quantidade_atual"],
-                    stock_minimo=row["stock_minimo"],
-                    status=row["status"] or "ativo",
-                    data_alerta=row.get("data_alerta")
-                ))
-            return alertas
-        except Error as e:
-            print(f"❌ Erro ao listar alertas: {e}")
-            return alertas
-        finally:
-            cursor.close()
-            conn.close()
+class AlertaService:
+    """Service para gestão de alertas"""
+    
+    def __init__(self):
+        self.dao = AlertaDAO()
 
-    def inserir(self, alerta: Alerta) -> Optional[int]:
-        """Insere um alerta no banco e retorna o id gerado."""
-        conn = get_connection()
-        if not conn:
-            return None
-        cursor = conn.cursor()
-        try:
-            sql = """
-            INSERT INTO alertas (produto_id, quantidade_atual, stock_minimo, status)
-            VALUES (%s, %s, %s, %s)
-            """
-            cursor.execute(sql, (
-                alerta.produto_id,
-                alerta.quantidade_atual,
-                alerta.stock_minimo,
-                alerta.status or "ativo"  # Garante status default
-            ))
-            conn.commit()
-            return cursor.lastrowid
-        except Error as e:
-            print(f"❌ Erro ao inserir alerta: {e}")
-            conn.rollback()
-            return None
-        finally:
-            cursor.close()
-            conn.close()
+    def listar_alertas(self) -> List[Alerta]:
+        """Retorna todos os alertas"""
+        return self.dao.listar_todos()
 
-    def atualizar_status(self, id_alerta: int, status: str) -> bool:
-        """Atualiza o status do alerta (ativo/resolvido)."""
-        if status not in ("ativo", "resolvido"):
-            print("❌ Status inválido. Use 'ativo' ou 'resolvido'.")
-            return False
+    def listar_alertas_ativos(self) -> List[Alerta]:
+        """Retorna apenas alertas ativos"""
+        return self.dao.listar_ativos()
 
-        conn = get_connection()
-        if not conn:
-            return False
-        cursor = conn.cursor()
-        try:
-            sql = "UPDATE alertas SET status=%s WHERE id_alerta=%s"
-            cursor.execute(sql, (status, id_alerta))
-            conn.commit()
-            return cursor.rowcount > 0
-        except Error as e:
-            print(f"❌ Erro ao atualizar status do alerta: {e}")
-            conn.rollback()
-            return False
-        finally:
-            cursor.close()
-            conn.close()
+    def buscar_alerta(self, id_alerta: int) -> Optional[Alerta]:
+        """Busca um alerta pelo ID"""
+        return self.dao.buscar_por_id(id_alerta)
+
+    def criar_alerta(self, alerta: Alerta) -> Optional[int]:
+        """Cria um novo alerta - método que ProdutoService espera"""
+        return self.dao.inserir(alerta)
+
+    def criar_alerta_com_parametros(self, produto_id: int, quantidade_atual: int, stock_minimo: int) -> Optional[int]:
+        """Cria alerta com parâmetros individuais"""
+        alerta = Alerta(
+            produto_id=produto_id,
+            quantidade_atual=quantidade_atual,
+            stock_minimo=stock_minimo,
+            status='ativo' if quantidade_atual <= stock_minimo else 'resolvido'
+        )
+        return self.dao.inserir(alerta)
+
+    def resolver_alerta(self, id_alerta: int) -> bool:
+        """Marca um alerta como resolvido"""
+        return self.dao.atualizar_status(id_alerta, "resolvido")
+
+    def atualizar_quantidade_alerta(self, id_alerta: int, nova_quantidade: int) -> bool:
+        """Atualiza a quantidade de um alerta"""
+        return self.dao.atualizar_quantidade(id_alerta, nova_quantidade)
+
+    def buscar_alertas_por_produto(self, produto_id: int) -> List[Alerta]:
+        """Busca alertas de um produto específico"""
+        todos_alertas = self.dao.listar_todos()
+        return [a for a in todos_alertas if a.produto_id == produto_id]
+
+    def tem_alerta_ativo_para_produto(self, produto_id: int) -> bool:
+        """Verifica se existe alerta ativo para um produto"""
+        alertas_ativos = self.dao.listar_ativos()
+        for alerta in alertas_ativos:
+            if alerta.produto_id == produto_id:
+                return True
+        return False

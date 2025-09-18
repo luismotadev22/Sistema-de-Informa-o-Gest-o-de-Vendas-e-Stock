@@ -5,6 +5,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 from datetime import datetime
+from services.alerta_service import AlertaService
 
 # Definir fonte global com suporte a emojis
 rcParams['font.family'] = 'Segoe UI Emoji'  # Windows
