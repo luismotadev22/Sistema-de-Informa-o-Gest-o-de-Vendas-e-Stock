@@ -1,9 +1,9 @@
 import ttkbootstrap as tb
 from tkinter import ttk, messagebox
 from services.relatorio_service import RelatorioService
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import matplotlib.pyplot as plt
-from matplotlib import rcParams
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg # Permite gerar gráficos dentro do Tkinter
+import matplotlib.pyplot as plt # Biblioteca Python para criar gráficos
+from matplotlib import rcParams # Define a aparência dos gráficos
 from datetime import datetime
 from services.alerta_service import AlertaService
 

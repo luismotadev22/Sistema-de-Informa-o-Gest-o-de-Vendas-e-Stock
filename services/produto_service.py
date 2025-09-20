@@ -10,18 +10,19 @@ class ProdutoService:
 
     def _get_alerta_service(self):
         """Getter lazy para evitar importação circular"""
-        if self._alerta_service is None:
-            from services.alerta_service import AlertaService
+        if self._alerta_service is None: # Se for None significa que é a primeira vez do método a ser chamado
+            from services.alerta_service import AlertaService # chamando aqui para evitar a importação circular
             self._alerta_service = AlertaService()
         return self._alerta_service
 
     def listar_produtos(self) -> List[Produto]:
         """Retorna todos os produtos e gera alertas se necessário."""
         produtos = self.produto_dao.listar_todos()
-        alerta_service = self._get_alerta_service()
+        alerta_service = self._get_alerta_service() 
 
         for p in produtos:
             if p.stock_atual <= p.stock_minimo:
+            
                 # Verifica se já existe alerta ativo para este produto
                 if not alerta_service.tem_alerta_ativo_para_produto(p.id_produto):
                     alerta = Alerta(

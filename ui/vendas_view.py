@@ -114,6 +114,9 @@ class VendaPopup(tb.Toplevel):
         )
         self.produto_combo.grid(row=0, column=1, padx=10, pady=5)
 
+        # 🔹 Preencher preço automaticamente ao selecionar produto
+        self.produto_combo.bind("<<ComboboxSelected>>", self.preencher_preco)
+        
         # Quantidade
         tb.Label(content, text="Quantidade:").grid(row=1, column=0, padx=10, pady=5, sticky="e")
         self.quantidade_entry = tb.Entry(content, width=20)
@@ -127,6 +130,20 @@ class VendaPopup(tb.Toplevel):
         # Botão Confirmar
         btn = tb.Button(content, text="Confirmar", bootstyle="primary", command=self.confirmar)
         btn.grid(row=3, column=0, columnspan=2, pady=15)
+
+    def preencher_preco(self, event=None):
+        """Preenche o campo de preço com o preco_venda do produto escolhido."""
+        produto_str = self.produto_var.get()
+        if not produto_str:
+            return
+        try:
+            produto_id = int(produto_str.split(" - ")[0])
+            produto = next((p for p in self.produtos if p.id_produto == produto_id), None)
+            if produto:
+                self.preco_entry.delete(0, "end")
+                self.preco_entry.insert(0, f"{produto.preco_venda:.2f}")
+        except Exception as e:
+            print("Erro ao preencher preço:", e)
 
     def confirmar(self):
         try:
