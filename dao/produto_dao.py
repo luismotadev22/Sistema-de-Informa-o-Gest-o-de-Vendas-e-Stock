@@ -110,3 +110,19 @@ class ProdutoDAO:
         finally:
             cursor.close()
             conn.close()
+
+    def remover(self, id_produto: int) -> bool:
+        conn = get_connection()
+        if not conn:
+            return False
+        cursor = conn.cursor()
+        try:
+            cursor.execute("DELETE FROM produtos WHERE id_produto=%s", (id_produto,))
+            conn.commit()
+            return cursor.rowcount > 0
+        except Error as e:
+            print(f"❌ Erro ao remover produto: {e}")
+            return False
+        finally:
+            cursor.close()
+            conn.close()
